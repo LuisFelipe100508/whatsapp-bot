@@ -103,3 +103,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Em produção, use um caminho difícil de adivinhar (sempre terminando em "/")
+ADMIN_URL = env("ADMIN_URL", default="admin/")
