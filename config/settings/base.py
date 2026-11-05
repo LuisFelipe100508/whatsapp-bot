@@ -22,8 +22,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",  # ExclusionConstraint (conflito de horários)
     "rest_framework",
-    # apps do projeto serão adicionados na Etapa 4
+    "apps.businesses",
+    "apps.customers",
+    "apps.conversations",
+    "apps.bot",
+    "apps.scheduling",
+    "apps.notifications",
+    "apps.whatsapp",
 ]
 
 MIDDLEWARE = [
