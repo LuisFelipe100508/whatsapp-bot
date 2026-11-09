@@ -86,7 +86,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
-    "DEFAULT_THROTTLE_RATES": {"webhook": "60/min"},  # usado na etapa de segurança
+    "DEFAULT_THROTTLE_RATES": {"webhook": "60/min"},
+    "NUM_PROXIES": env.int("NUM_PROXIES", default=0),
 }
 
 # --- Integrações (etapas seguintes). Tudo vem do ambiente. ---
@@ -106,3 +107,14 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Em produção, use um caminho difícil de adivinhar (sempre terminando em "/")
 ADMIN_URL = env("ADMIN_URL", default="admin/")
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 262144
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"simple": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "simple"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {"apps": {"level": env("LOG_LEVEL", default="INFO")}},
+}
