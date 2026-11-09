@@ -95,6 +95,7 @@ WHATSAPP_VERIFY_TOKEN = env("WHATSAPP_VERIFY_TOKEN", default="")
 WHATSAPP_APP_SECRET = env("WHATSAPP_APP_SECRET", default="")
 WHATSAPP_ACCESS_TOKEN = env("WHATSAPP_ACCESS_TOKEN", default="")
 REMINDER_CRON_TOKEN = env("REMINDER_CRON_TOKEN", default="")
+WHATSAPP_API_VERSION = env("WHATSAPP_API_VERSION", default="v21.0")
 
 # --- E-mail (SMTP Gmail com senha de app) ---
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

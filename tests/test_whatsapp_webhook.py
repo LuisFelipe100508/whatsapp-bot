@@ -89,7 +89,7 @@ def test_verification_fails_closed_when_token_not_configured(client, settings):
 def test_valid_signature_stores_message(client, business):
     response = post(client, make_payload(text="Oi"))
     assert response.status_code == 200
-    message = Message.objects.get()
+    message = Message.objects.get(direction=Message.Direction.IN)
     assert message.body == "Oi"
     assert message.direction == Message.Direction.IN
     assert Customer.objects.filter(business=business, phone="5535999990001").exists()

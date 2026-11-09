@@ -20,7 +20,7 @@ class BotReply(models.Model):
     )
     text = models.TextField(
         "resposta",
-        help_text="Pode usar {horarios}, {precos} e {endereco}: o bot preenche com os dados reais.",
+        help_text="Pode usar {nome}, {horarios}, {precos}, {endereco} e {menu}: o bot preenche com os dados reais.",
     )
     is_active = models.BooleanField("ativa", default=True)
 
