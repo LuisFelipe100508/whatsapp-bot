@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from apps.businesses.models import Service
 from apps.conversations.models import Conversation, Message
+from apps.notifications import services as notifications  # ETAPA 8
 from apps.scheduling import services as scheduling
 from apps.scheduling.models import Appointment
 from apps.whatsapp import client
@@ -71,6 +72,12 @@ def handle_message(message):
             )
         except client.WhatsAppSendError as exc:
             logger.error("bot: falha ao enviar resposta (%s)", exc)  # só código HTTP, sem dados pessoais
+
+    # ETAPA 8: o e-mail de confirmação sai depois do WhatsApp (melhor esforço).
+    appointment = getattr(conv, "_created_appointment", None)
+    if appointment is not None:
+        notifications.send_confirmation_email(appointment)
+
     logger.info("bot: estado=%s respostas=%d", conv.state, len(texts))
 
 
@@ -342,6 +349,7 @@ def _finalize(conv):
     except scheduling.InvalidRequest:
         raise StaleConversation from None
 
+    conv._created_appointment = appointment  # ETAPA 8: o e-mail sai depois do commit, em handle_message
     _set(conv, State.IDLE)
     local = appointment.start_at.astimezone(LOCAL_TZ)
     lines = [

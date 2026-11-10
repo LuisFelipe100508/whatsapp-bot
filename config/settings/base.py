@@ -88,6 +88,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
     "DEFAULT_THROTTLE_RATES": {"webhook": "60/min"},
     "NUM_PROXIES": env.int("NUM_PROXIES", default=0),
+        "DEFAULT_THROTTLE_RATES": {"webhook": "60/min", "cron": "30/min"},
 }
 
 # --- Integrações (etapas seguintes). Tudo vem do ambiente. ---
@@ -96,6 +97,8 @@ WHATSAPP_APP_SECRET = env("WHATSAPP_APP_SECRET", default="")
 WHATSAPP_ACCESS_TOKEN = env("WHATSAPP_ACCESS_TOKEN", default="")
 REMINDER_CRON_TOKEN = env("REMINDER_CRON_TOKEN", default="")
 WHATSAPP_API_VERSION = env("WHATSAPP_API_VERSION", default="v21.0")
+WHATSAPP_REMINDER_TEMPLATE = env("WHATSAPP_REMINDER_TEMPLATE", default="")
+WHATSAPP_TEMPLATE_LANGUAGE = env("WHATSAPP_TEMPLATE_LANGUAGE", default="pt_BR")
 
 # --- E-mail (SMTP Gmail com senha de app) ---
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -104,7 +107,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_TIMEOUT = 10  # nunca esperar o SMTP para sempre
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "atendimento@localhost"
 
 # Em produção, use um caminho difícil de adivinhar (sempre terminando em "/")
 ADMIN_URL = env("ADMIN_URL", default="admin/")
