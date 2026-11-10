@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.postgres",  # ExclusionConstraint (conflito de horários)
     "rest_framework",
+    "anymail",
     "apps.businesses",
     "apps.customers",
     "apps.conversations",
@@ -101,14 +102,20 @@ WHATSAPP_REMINDER_TEMPLATE = env("WHATSAPP_REMINDER_TEMPLATE", default="")
 WHATSAPP_TEMPLATE_LANGUAGE = env("WHATSAPP_TEMPLATE_LANGUAGE", default="pt_BR")
 
 # --- E-mail (SMTP Gmail com senha de app) ---
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_TIMEOUT = 10  # nunca esperar o SMTP para sempre
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "atendimento@localhost"
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER or "atendimento@localhost")
+
+# Brevo via API HTTPS (usada quando EMAIL_BACKEND=anymail.backends.brevo.EmailBackend)
+ANYMAIL = {
+    "BREVO_API_KEY": env("BREVO_API_KEY", default=""),
+    "REQUESTS_TIMEOUT": (3.05, 10),  # nunca esperar para sempre
+}
 
 # Em produção, use um caminho difícil de adivinhar (sempre terminando em "/")
 ADMIN_URL = env("ADMIN_URL", default="admin/")
