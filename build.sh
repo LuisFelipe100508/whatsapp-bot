@@ -8,3 +8,4 @@ pip install -r requirements/base.txt
 python manage.py collectstatic --no-input
 python manage.py migrate --no-input
 python manage.py create_owner_group
+python manage.py seed_bot_replies
