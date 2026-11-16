@@ -1,4 +1,4 @@
-# WhatsApp Booking Bot
+# WhatsApp Bot
 
 Bot de atendimento e agendamento para pequenos negócios (barbearia, clínica, loja): responde perguntas frequentes pelo WhatsApp, agenda horários **sem conflito** e envia confirmações e lembretes por WhatsApp e e-mail. O dono gerencia tudo pelo Django Admin.
 
