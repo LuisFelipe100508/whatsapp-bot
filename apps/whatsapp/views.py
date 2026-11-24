@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from .parsing import parse_incoming_messages
 from .security import is_valid_signature, is_valid_verify_token
 from .services import ingest_message
+from .statuses import log_delivery_statuses
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,10 @@ class WhatsAppWebhookView(APIView):
             payload = json.loads(body)
         except ValueError:
             return Response({"detail": "invalid json"}, status=400)
+        
+        log_delivery_statuses(payload)
+
+        messages = parse_incoming_messages(payload)
 
         messages = parse_incoming_messages(payload)
         new = failed = 0
