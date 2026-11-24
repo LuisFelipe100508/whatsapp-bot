@@ -4,7 +4,7 @@ Bot de atendimento e agendamento para pequenos negócios (barbearia, clínica, l
 
 ![Demonstração do bot](docs/assets/Animacao.gif)
 
-> **Status:** MVP completo, em produção no Render (plano gratuito). A integração com a Meta Cloud API está implementada e testada com payloads simulados e assinados; a conexão com um número real do WhatsApp é a próxima etapa.
+> **Status:** MVP completo, em produção no Render (plano gratuito). A integração com a Meta Cloud API foi testada de ponta a ponta com o número de teste da Meta: o webhook real recebe a mensagem, valida a assinatura, localiza o negócio, gera a resposta do bot e a Meta aceita o envio. A **entrega no WhatsApp do celular é recusada pela Meta** com o erro 130497 (conta comercial restrita de enviar mensagens para este país). Veja [Limitações conhecidas](#limitações-conhecidas).
 
 ## Funcionalidades
 
@@ -34,7 +34,7 @@ flowchart LR
 Cada app Django tem uma responsabilidade (`businesses`, `customers`, `conversations`, `bot`, `scheduling`, `notifications`, `whatsapp`). As views só recebem a requisição; a regra de negócio fica em funções de serviço, fáceis de testar.
 
 ```
-whatsapp-booking-bot/
+whatsapp-bot/
 ├── apps/
 │   ├── businesses/      # negócio, serviços, horários de funcionamento
 │   ├── customers/       # clientes (telefone, e-mail, consentimento)
@@ -42,12 +42,14 @@ whatsapp-booking-bot/
 │   ├── bot/             # respostas editáveis e motor de conversa
 │   ├── scheduling/      # agendamentos e regras de conflito
 │   ├── notifications/   # e-mails e lembretes
-│   └── whatsapp/        # webhook, assinatura, client da Meta
+│   └── whatsapp/        # webhook, assinatura, client da Meta, status de entrega
 ├── config/              # settings separados (base, dev, prod) e urls
-├── tests/               # testes automatizados (pytest)
+├── docs/                # guia de deploy e GIF de demonstração
 ├── scripts/             # simulador do webhook e chat de demonstração
+├── tests/               # testes automatizados (pytest)
 ├── requirements/        # base.txt (produção) e dev.txt
-└── build.sh             # build do deploy
+├── build.sh             # build do deploy
+└── LICENSE
 ```
 
 ## Stack
@@ -93,7 +95,7 @@ Em desenvolvimento os e-mails aparecem no terminal. Todas as variáveis estão d
 python -m pytest -v
 ```
 
-89 testes cobrem: conflito de horários (inclusive no banco), segurança do webhook (assinatura, token, idempotência, rate limit, logs sem dados pessoais), fluxo completo de agendamento, isolamento do admin entre donos, lembretes idempotentes e o endpoint do cron.
+92 testes cobrem: conflito de horários (inclusive no banco), segurança do webhook (assinatura, token, idempotência, rate limit, logs sem dados pessoais), registro de falhas de entrega sem dados pessoais, fluxo completo de agendamento, isolamento do admin entre donos, lembretes idempotentes e o endpoint do cron.
 
 ## Segurança
 
@@ -109,7 +111,8 @@ python -m pytest -v
 
 - **Conflito de horários garantido pelo banco.** Validar só em Python não basta: duas mensagens simultâneas passam pela checagem ao mesmo tempo. Uma *exclusion constraint* do PostgreSQL (`btree_gist`) impede, mesmo com concorrência, dois agendamentos confirmados sobrepostos. A checagem em Python dá a resposta amigável; o banco é a barreira final. Um teste desliga a checagem de propósito e prova isso.
 - **Assinatura validada sobre o corpo bruto.** O HMAC é calculado sobre os bytes exatos recebidos, antes de qualquer parse de JSON.
-- **O webhook responde 200 para eventos ignorados** (negócio desconhecido, status de entrega, mídia). Responder erro faria a Meta reenviar o mesmo evento por dias. Só assinatura inválida (403), JSON inválido (400) e excesso de requisições (429) recebem erro.
+- **O webhook responde 200 para eventos ignorados** (negócio desconhecido, mídia). Responder erro faria a Meta reenviar o mesmo evento por dias. Só assinatura inválida (403), JSON inválido (400) e excesso de requisições (429) recebem erro.
+- **Falhas de entrega registradas sem dados pessoais.** Os eventos de status da Meta (`failed`) são logados só com código e título do erro. O telefone, os IDs de contato e o ID da mensagem ficam de fora: o `wamid` embute o telefone codificado em base64.
 - **Idempotência.** O ID único da mensagem na Meta evita processar entregas repetidas; nos lembretes, uma constraint por agendamento e canal, mais uma reivindicação por *compare-and-swap* no contador de tentativas, impede envio duplicado mesmo com dois crons simultâneos. A prioridade é nunca enviar duas vezes.
 - **Motor de conversa como máquina de estados**, com trava de linha por conversa (`select_for_update`) e contexto só com IDs e datas (nunca dado pessoal). Contexto inconsistente reinicia a conversa em vez de prender o cliente.
 - **Rede fora da transação.** As respostas só são enviadas depois do commit, para nenhuma trava de banco ficar presa esperando a Meta.
@@ -123,6 +126,8 @@ python -m pytest -v
 
 ## Limitações conhecidas
 
+- **Entrega no WhatsApp recusada pela Meta na conta de teste.** O envio é aceito pela API, mas a entrega ao celular falha com o erro 130497 (conta comercial restrita de enviar mensagens para este país). Os lembretes por WhatsApp teriam a mesma falha; o e-mail é o canal garantido. As falhas são registradas (só código e título do erro).
+- **Entrega "no máximo uma vez" para o bot.** A mensagem é gravada antes de o bot responder. Se o bot falhar depois disso, a reentrega da Meta é ignorada como duplicada e o cliente fica sem resposta. A evolução seria marcar a mensagem como processada só depois de o bot concluir.
 - O envio de mensagens é **síncrono** dentro da requisição. A evolução natural é uma fila de tarefas (Celery ou RQ).
 - O bot **não cancela nem remarca**: orienta o cliente a falar com o estabelecimento.
 - Uma agenda por negócio e fuso horário único (`America/Sao_Paulo`). Vários profissionais exigiriam um model `Professional`.
